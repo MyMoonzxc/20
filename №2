@@ -1,0 +1,153 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include<locale.h>
+
+int main() {
+    setlocale(LC_ALL, "RUS");
+    char filename[100];
+    char new_filename[150];
+    FILE* input_file, * output_file;
+    double number;
+    char line[100];
+    int count = 0;
+    int i;
+
+    // Шаг 1: Ввод имени файла
+    printf("Программа для возведения чисел в квадрат\n");
+    printf("=========================================\n");
+    printf("Введите имя файла с числами: ");
+    scanf("%s", filename);
+
+    // Шаг 2: Попытка открыть файл
+    input_file = fopen(filename, "r");
+    if (input_file == NULL) {
+        printf("Ошибка! Не могу открыть файл '%s'\n", filename);
+        printf("Проверьте правильность имени файла.\n");
+        return 1;
+    }
+
+    // Шаг 3: Создаем новое имя файла
+    // Ищем точку в имени файла
+    char* dot_position = strchr(filename, '.');
+    if (dot_position != NULL) {
+        // Копируем часть до точки
+        strncpy(new_filename, filename, dot_position - filename);
+        new_filename[dot_position - filename] = '\0';
+        // Добавляем "square" и расширение
+        strcat(new_filename, "square");
+        strcat(new_filename, dot_position);
+    }
+    else {
+        // Если нет расширения
+        strcpy(new_filename, filename);
+        strcat(new_filename, "square");
+    }
+
+    printf("Создан новый файл: %s\n", new_filename);
+
+    // Шаг 4: Открываем файл для записи результатов
+    output_file = fopen(new_filename, "w");
+    if (output_file == NULL) {
+        printf("Ошибка! Не могу создать файл '%s'\n", new_filename);
+        fclose(input_file);
+        return 1;
+    }
+
+    // Шаг 5: Чтение чисел из файла и обработка
+    printf("\nОбработка чисел:\n");
+    printf("----------------\n");
+
+    
+    
+    FILE* temp_file = fopen(filename, "r");
+    int num_count = 0;
+    while (fgets(line, sizeof(line), temp_file)) {
+        
+        if (sscanf(line, "%lf", &number) == 1) {
+            num_count++;
+        }
+    }
+    fclose(temp_file);
+
+    if (num_count == 0) {
+        printf("В файле нет чисел для обработки!\n");
+        fclose(input_file);
+        fclose(output_file);
+        return 1;
+    }
+
+    // Создаем массивы для чисел и их квадратов
+    double* numbers = (double*)malloc(num_count * sizeof(double));
+    double* squares = (double*)malloc(num_count * sizeof(double));
+
+    if (numbers == NULL || squares == NULL) {
+        printf("Ошибка выделения памяти!\n");
+        fclose(input_file);
+        fclose(output_file);
+        return 1;
+    }
+
+    // Снова открываем файл для чтения 
+    fclose(input_file);
+    input_file = fopen(filename, "r");
+
+    // Читаем и обрабатываем числа
+    count = 0;
+    while (fgets(line, sizeof(line), input_file)) {
+        // Пробуем преобразовать строку в число
+        if (sscanf(line, "%lf", &number) == 1) {
+            numbers[count] = number;
+            squares[count] = number * number;
+
+            // Записываем квадрат в новый файл
+            fprintf(output_file, "%.6f\n", squares[count]);
+
+            printf("Число %d: %.2f -> %.2f\n",
+                count + 1, numbers[count], squares[count]);
+
+            count++;
+        }
+        else {
+            printf("Пропускаем строку: %s", line);
+        }
+    }
+
+    // Шаг 6: Закрываем файлы
+    fclose(input_file);
+    fclose(output_file);
+
+    // Шаг 7: Выводим итоговый отчет
+    printf("\n=========================================\n");
+    printf("ИТОГОВЫЙ ОТЧЕТ\n");
+    printf("=========================================\n");
+    printf("Исходный файл: %s\n", filename);
+    printf("Файл с результатами: %s\n", new_filename);
+    printf("Обработано чисел: %d\n", count);
+
+    if (count > 0) {
+        printf("\nПервые 5 результатов:\n");
+        for (i = 0; i < 5 && i < count; i++) {
+            printf("  %12.4f  ->  %12.4f\n", numbers[i], squares[i]);
+        }
+
+        // Небольшая статистика
+        double sum_original = 0, sum_squares = 0;
+        for (i = 0; i < count; i++) {
+            sum_original += numbers[i];
+            sum_squares += squares[i];
+        }
+        printf("\nСреднее исходных чисел: %.4f\n", sum_original / count);
+        printf("Среднее квадратов: %.4f\n", sum_squares / count);
+    }
+
+    // Освобождаем память
+    free(numbers);
+    free(squares);
+
+    printf("\nПрограмма завершена успешно!\n");
+    printf("Результаты сохранены в файле '%s'\n", new_filename);
+
+    return 0;
+}
