@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include<locale.h>
+
+int main()
+{
+    setlocale(LC_ALL, "RUS");
+    FILE* f;  
+    int x;    
+    int summa = 0; 
+    int kolvo = 0; 
+    float srednee; 
+
+    // открываем файл
+    f = fopen("temp.txt", "r");
+
+    // проверяем, открылся ли
+    if (f == NULL)
+    {
+        printf("Файл temp.txt не найден!\n");
+        printf("Создай его в этой папке с числами.\n");
+        return 0;
+    }
+
+    // читаем пока файл не кончится
+    while (!feof(f))
+    {
+        // читаем одно число
+        fscanf(f, "%d", &x);
+
+        // добавляем к сумме
+        summa = summa + x;
+
+        // считаем сколько чисел
+        kolvo = kolvo + 1;
+    }
+
+    // закрываем файл
+    fclose(f);
+
+    // считаем среднее
+    if (kolvo > 0)
+    {
+        srednee = (float)summa / kolvo;
+        printf("Найдено чисел: %d\n", kolvo);
+        printf("Их сумма: %d\n", summa);
+        printf("Среднее арифметическое: %.2f\n", srednee);
+    }
+    else
+    {
+        printf("В файле нет чисел!\n");
+    }
+
+    return 0;
+}
